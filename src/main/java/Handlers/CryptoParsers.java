@@ -68,45 +68,38 @@ public class CryptoParsers {
     }
 
     public static HashSet<String> getWalletCoins(String wallet) throws IOException {
-        String query = """
-                    query MyQuery {
-                        Solana {
-                            BalanceUpdates(
-                                    where: {BalanceUpdate: {Account: {Owner: {is: "%s"}, Token: {Owner: {is: "%s"}}}}}
-                ) {
-                                BalanceUpdate {
-                                    Currency {
-                                        MintAddress
-                                    }
-                                }
-                            }
+        HashSet<String> coins = new HashSet<>();
+
+        try {
+            String apiUrl = "https://frontend-api-v3.pump.fun/balances/" + wallet + "?limit=50&offset=0&minBalance=-1";
+
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder().url(apiUrl).get().build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.body() != null) {
+                    try {
+                        JsonArray jsoncoins = JsonParser.parseString(response.body().string()).getAsJsonArray();
+
+                        for (JsonElement el : jsoncoins) {
+                            coins.add(el.getAsJsonObject().get("mint").getAsString());
                         }
-                    }""".formatted(wallet, wallet);
 
+                    } catch (Exception e) {
+                        System.out.println("Error while getting user tokens " + e.getMessage());
+                        System.out.println(response);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-        // Properly formatted JSON body
-        String jsonQuery = String.format("{\"query\": \"%s\"}", query.replace("\n", " ").replace("\"", "\\\""));
-
-        OkHttpClient client = new OkHttpClient();
-        RequestBody body = RequestBody.create(
-                jsonQuery,
-                MediaType.parse("application/json")
-        );
-
-        Request request = new Request.Builder()
-                .url(API_URL)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "f'Bearer " + API_KEY)
-                .post(body)
-                .build();
-
-        Response response = client.newCall(request).execute();
-
-        if (response.body() != null) {
-            return extractMintAddresses(response.body().string());
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        return null;
+        return coins;
     }
 
     public static void writeHashMapToFile(HashMap<String, HashMap<String, String>> map) {

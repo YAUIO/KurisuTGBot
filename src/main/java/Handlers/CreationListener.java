@@ -69,7 +69,7 @@ public class CreationListener extends Thread {
 
             synchronized (this) {
                 try {
-                    this.wait(40);
+                    this.wait(100);
                 } catch (InterruptedException _) {
                     CryptoParsers.writeHashMapToFile(addresses);
                     System.exit(0);
