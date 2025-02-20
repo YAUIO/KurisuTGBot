@@ -16,12 +16,12 @@ public class CreationListener extends Thread {
     public CreationListener(TelegramClient tgclient) {
         this.tgclient = tgclient;
         chat_id = csvParser.readChatKey();
+        viewport = Collections.synchronizedMap(addresses);
         try {
             viewport = CryptoParsers.readHashMapFromFile();
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
         }
-        viewport = Collections.synchronizedMap(addresses);
         System.out.println("Listener initialized");
         this.start();
     }
