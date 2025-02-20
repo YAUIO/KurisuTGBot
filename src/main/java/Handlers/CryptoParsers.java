@@ -7,8 +7,8 @@ import java.io.*;
 import java.util.*;
 
 public class CryptoParsers {
-    private static final String API_URL = "https://streaming.bitquery.io/eap";
-    private static final String API_KEY = csvParser.readSQLKey();
+    //private static final String API_URL = "https://streaming.bitquery.io/eap";
+    //private static final String API_KEY = csvParser.readSQLKey();
 
     public static HashSet<String> extractMintAddresses(String json) {
         HashSet<String> addresses = new HashSet<>();
