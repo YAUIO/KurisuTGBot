@@ -55,4 +55,39 @@ public class csvParser {
             System.out.println("Could not write chatKey " + e.getClass() + " " + e.getMessage());
         }
     }
+
+    public static int readPollingRate() {
+        try {
+            FileInputStream fis = new FileInputStream("config.csv");
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+            return Integer.parseInt(br.readLine());
+        } catch (Exception e) {
+            System.out.println("Could not read polling rate...");
+        }
+        File f = new File("config.csv");
+        if (!f.exists()) {
+            try {
+                f.createNewFile();
+                writePollingRate(100);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return 0;
+    }
+
+    public static void writePollingRate(int l) {
+        try {
+            File f = new File("config.csv");
+            if (f.exists()) {
+                f.delete();
+            }
+            f.createNewFile();
+            FileOutputStream fos = new FileOutputStream(f);
+            PrintWriter pw = new PrintWriter(fos, true);
+            pw.println(l);
+        } catch (Exception e) {
+            System.out.println("Could not write polling rate " + e.getClass() + " " + e.getMessage());
+        }
+    }
 }

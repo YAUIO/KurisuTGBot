@@ -12,8 +12,10 @@ public class CreationListener extends Thread {
     private TelegramClient tgclient;
     public Map<String, HashMap<String, String>> viewport;
     public volatile long chat_id;
+    public final int pollingRate;
 
     public CreationListener(TelegramClient tgclient) {
+        pollingRate = csvParser.readPollingRate();
         this.tgclient = tgclient;
         chat_id = csvParser.readChatKey();
         viewport = Collections.synchronizedMap(addresses);
@@ -44,7 +46,7 @@ public class CreationListener extends Thread {
                                 for (String coin : coins) {
                                     String creator = CryptoParsers.getCoinCreator(coin);
                                     if (creator != null && creator.equals(wallet)) {
-                                        String msg = "New coin detected: https://neo.bullx.io/terminal?chainId=1399811149&address=" + coin + " \n https://pump.fun/profile/" + coin + " \n";
+                                        String msg = "New coin detected: https://neo.bullx.io/terminal?chainId=1399811149&address=" + coin + " \n https://pump.fun/coin/" + coin + " \n";
                                         viewport.get(wallet).put(coin, creator);
                                         SendMessage message = SendMessage // Create a message object
                                                 .builder()
@@ -69,7 +71,7 @@ public class CreationListener extends Thread {
 
             synchronized (this) {
                 try {
-                    this.wait(100);
+                    this.wait(pollingRate);
                 } catch (InterruptedException _) {
                     CryptoParsers.writeHashMapToFile(viewport);
                     System.exit(0);

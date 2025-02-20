@@ -86,8 +86,10 @@ public class CryptoParsers {
                         }
 
                     } catch (Exception e) {
-                        System.out.println("Error while getting user tokens " + e.getMessage());
+                        System.out.print("Probably ratelimited or vpn issue: ");
+                        System.out.print("Error while getting user tokens " + e.getMessage());
                         System.out.println(response);
+                        System.out.println();
                     }
                 }
             } catch (Exception e) {
