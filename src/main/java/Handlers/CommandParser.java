@@ -4,7 +4,6 @@ import java.util.HashMap;
 
 public class CommandParser {
     public static String parse (String msg, CreationListener cl) {
-        System.out.println(msg);
         String[] split = null;
         if (!msg.startsWith("/")) {
             msg = "/help";
@@ -23,6 +22,7 @@ public class CommandParser {
                         /add
                         /rm
                         /list
+                        /list <wallet_address>
                         /stop
                         """;
             }
@@ -46,6 +46,9 @@ public class CommandParser {
             }
 
             case "/list" -> {
+                if (split.length == 2) {
+                    return list(split[1], cl);
+                }
                 return list(cl);
             }
 
@@ -80,6 +83,21 @@ public class CommandParser {
             if (cl.viewport != null) {
                 for (String wallet : cl.viewport.keySet()) {
                     ret.append("Wallet ").append(i).append(": ").append(wallet).append("\n");
+                    i++;
+                }
+            }
+        }
+        return ret.toString();
+    }
+
+    private static String list(String s, CreationListener cl){
+        int i = 1;
+        StringBuilder ret = new StringBuilder();
+        ret.append("List of coins on a wallet ").append(s).append(": \n");
+        synchronized (cl.viewport) {
+            if (cl.viewport != null && cl.viewport.get(s) != null) {
+                for (String coin : cl.viewport.get(s).keySet()) {
+                    ret.append("Coin ").append(i).append(": ").append(coin).append("\n");
                     i++;
                 }
             }

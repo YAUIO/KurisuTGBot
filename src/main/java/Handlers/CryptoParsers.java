@@ -94,7 +94,7 @@ public class CryptoParsers {
                 e.printStackTrace();
             }
 
-            return null;
+            return coins;
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -44,7 +44,7 @@ public class CreationListener extends Thread {
                                 for (String coin : coins) {
                                     String creator = CryptoParsers.getCoinCreator(coin);
                                     if (creator != null && creator.equals(wallet)) {
-                                        String msg = "New coin detected: https://neo.bullx.io/terminal?chainId=1399811149&address=" + coin;
+                                        String msg = "New coin detected: https://neo.bullx.io/terminal?chainId=1399811149&address=" + coin + " \n https://pump.fun/profile/" + coin + " \n";
                                         addresses.get(wallet).put(coin, creator);
                                         SendMessage message = SendMessage // Create a message object
                                                 .builder()
