@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class CreationListener extends Thread {
-    private HashMap<String, HashMap<String, String>> addresses = new HashMap<>();
+    public HashMap<String, HashMap<String, String>> addresses = new HashMap<>();
     private TelegramClient tgclient;
     public Map<String, HashMap<String, String>> viewport;
     public volatile long chat_id;
@@ -17,7 +17,7 @@ public class CreationListener extends Thread {
         this.tgclient = tgclient;
         chat_id = csvParser.readChatKey();
         try {
-            addresses = CryptoParsers.readHashMapFromFile();
+            viewport = CryptoParsers.readHashMapFromFile();
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
         }
@@ -29,23 +29,23 @@ public class CreationListener extends Thread {
     @Override
     public void run() {
         while (true) {
-            synchronized (addresses) {
-                for (String wallet : addresses.keySet()) {
+            synchronized (viewport) {
+                for (String wallet : viewport.keySet()) {
                     try {
                         HashSet<String> coins = CryptoParsers.getWalletCoins(wallet);
-                        addresses.computeIfAbsent(wallet, k -> new HashMap<>());
-                        if (coins != null && !addresses.get(wallet).keySet().containsAll(coins)) {
-                            coins.removeAll(addresses.get(wallet).keySet());
+                        viewport.computeIfAbsent(wallet, k -> new HashMap<>());
+                        if (coins != null && !viewport.get(wallet).keySet().containsAll(coins)) {
+                            coins.removeAll(viewport.get(wallet).keySet());
                             if (coins.size() > 2) { //to not check old values
                                 for (String coin : coins) {
-                                    addresses.get(wallet).put(coin, null);
+                                    viewport.get(wallet).put(coin, null);
                                 }
                             } else {
                                 for (String coin : coins) {
                                     String creator = CryptoParsers.getCoinCreator(coin);
                                     if (creator != null && creator.equals(wallet)) {
                                         String msg = "New coin detected: https://neo.bullx.io/terminal?chainId=1399811149&address=" + coin + " \n https://pump.fun/profile/" + coin + " \n";
-                                        addresses.get(wallet).put(coin, creator);
+                                        viewport.get(wallet).put(coin, creator);
                                         SendMessage message = SendMessage // Create a message object
                                                 .builder()
                                                 .chatId(chat_id)
@@ -57,7 +57,7 @@ public class CreationListener extends Thread {
                                             System.out.println("Exception while reporting new token " + e.getClass() + ": " + e.getMessage() + "\n " + msg);
                                         }
                                     }
-                                    addresses.get(wallet).put(coin, creator);
+                                    viewport.get(wallet).put(coin, creator);
                                 }
                             }
                         }
@@ -71,16 +71,16 @@ public class CreationListener extends Thread {
                 try {
                     this.wait(100);
                 } catch (InterruptedException _) {
-                    CryptoParsers.writeHashMapToFile(addresses);
+                    CryptoParsers.writeHashMapToFile(viewport);
                     System.exit(0);
                 }
             }
         }
     }
 
-    public void sync () {
-        //synchronized (addresses) {
-        //    System.out.println(addresses.keySet());
+    public void sync() {
+        //synchronized (viewport) {
+        //    System.out.println(viewport.keySet());
         //    System.out.println("|||||||||||||||||||||");
         //    System.out.println(viewport.keySet());
         //}

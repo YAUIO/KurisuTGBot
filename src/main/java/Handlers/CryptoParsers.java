@@ -102,7 +102,7 @@ public class CryptoParsers {
         return coins;
     }
 
-    public static void writeHashMapToFile(HashMap<String, HashMap<String, String>> map) {
+    public static void writeHashMapToFile(Map<String, HashMap<String, String>> map) {
         try {
             File f = new File("data.csv");
 
