@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class CreationListener extends Thread {
-    public HashMap<String, HashMap<String, String>> addresses = new HashMap<>();
+    private HashMap<String, HashMap<String, String>> addresses = new HashMap<>();
     private TelegramClient tgclient;
     public Map<String, HashMap<String, String>> viewport;
     public volatile long chat_id;
