@@ -1,6 +1,7 @@
 package Handlers;
 
 import java.io.*;
+import java.util.*;
 
 public class csvParser {
     public static String readTGKey() {
@@ -30,27 +31,35 @@ public class csvParser {
         }
     }
 
-    public static long readChatKey() {
+    public static HashSet<Long> readChatKey() {
         try {
             FileInputStream fis = new FileInputStream("chatkey.csv");
             BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-            return Long.parseLong(br.readLine());
+            HashSet<Long> keys = new HashSet<>();
+            while (br.ready()) {
+                try {
+                    keys.add(Long.parseLong(br.readLine()));
+                } catch (Exception _) {}
+            }
+            if (keys.isEmpty()) throw new RuntimeException("Keys list is empty");
+            return keys;
         } catch (Exception e) {
             System.out.println("Could not read chatid...");
         }
-        return 0;
+        return new HashSet<>();
     }
 
-    public static void writeChatKey(long l) {
+    public static void writeChatKey(Collection<Long> l) {
         try {
             File f = new File("chatkey.csv");
-            if (f.exists()) {
-                f.delete();
+            if (!f.exists()) {
+                f.createNewFile();
             }
-            f.createNewFile();
             FileOutputStream fos = new FileOutputStream("chatkey.csv");
             PrintWriter pw = new PrintWriter(fos, true);
-            pw.println(l);
+            for (Long lon : l) {
+                pw.println(lon);
+            }
         } catch (Exception e) {
             System.out.println("Could not write chatKey " + e.getClass() + " " + e.getMessage());
         }
