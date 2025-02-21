@@ -46,22 +46,22 @@ public class CryptoParsers {
     }
 
     public static String getCoinCreator(String addr) {
-        String apiUrl = "https://frontend-api.pump.fun/coins/" + addr;
+        try {
+            String apiUrl = "https://frontend-api.pump.fun/coins/" + addr;
 
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder().url(apiUrl).get().build();
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder().url(apiUrl).get().build();
 
-        try (Response response = client.newCall(request).execute()) {
+            Response response = client.newCall(request).execute();
             if (response.body() != null) {
                 try {
                     return JsonParser.parseString(response.body().string()).getAsJsonObject().get("creator").getAsString();
                 } catch (Exception e) {
-                    System.out.println("Error while getting token's creator " + e.getMessage());
-                    System.out.println(response);
+                    System.out.print("Probably ratelimited or vpn issue: " + response.code() + " error code.");
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Couldn't get coin creator due to error: " + e.getClass() + " " + e.getMessage());
         }
 
         return null;
@@ -76,29 +76,27 @@ public class CryptoParsers {
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder().url(apiUrl).get().build();
 
-            try (Response response = client.newCall(request).execute()) {
-                if (response.body() != null) {
-                    try {
-                        JsonArray jsoncoins = JsonParser.parseString(response.body().string()).getAsJsonArray();
+            Response response = client.newCall(request).execute();
+            if (response.body() != null) {
+                try {
+                    JsonArray jsoncoins = JsonParser.parseString(response.body().string()).getAsJsonArray();
 
-                        for (JsonElement el : jsoncoins) {
-                            coins.add(el.getAsJsonObject().get("mint").getAsString());
-                        }
-
-                    } catch (Exception e) {
-                        System.out.print("Probably ratelimited or vpn issue: ");
-                        System.out.print("Error while getting user tokens " + e.getMessage());
-                        System.out.println(response);
-                        System.out.println();
+                    for (JsonElement el : jsoncoins) {
+                        coins.add(el.getAsJsonObject().get("mint").getAsString());
                     }
+
+                    if (coins.isEmpty()) {
+                        System.out.println("Coins list for wallet " + wallet + " is empty. Response " + response);
+                    }
+
+                } catch (Exception _) {
+                    System.out.print("Probably ratelimited or vpn issue: " + response.code() + " error code.");
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
 
             return coins;
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Couldn't get Coins from Wallet due to error: " + e.getClass() + " " + e.getMessage());
         }
 
         return coins;
