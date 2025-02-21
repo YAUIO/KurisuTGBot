@@ -11,13 +11,13 @@ public class CreationListener extends Thread {
     private HashMap<String, HashMap<String, String>> addresses = new HashMap<>();
     private TelegramClient tgclient;
     public Map<String, HashMap<String, String>> viewport;
-    public volatile long chat_id;
+    public final HashSet<Long> chat_id;
     public final int pollingRate;
 
-    public CreationListener(TelegramClient tgclient) {
+    public CreationListener(TelegramClient tgclient, HashSet<Long> chat_id) {
         pollingRate = csvParser.readPollingRate();
         this.tgclient = tgclient;
-        chat_id = csvParser.readChatKey();
+        this.chat_id = chat_id;
         viewport = Collections.synchronizedMap(addresses);
         try {
             viewport = CryptoParsers.readHashMapFromFile();
@@ -38,7 +38,7 @@ public class CreationListener extends Thread {
                         viewport.computeIfAbsent(wallet, k -> new HashMap<>());
                         if (coins != null && !viewport.get(wallet).keySet().containsAll(coins)) {
                             coins.removeAll(viewport.get(wallet).keySet());
-                            if (coins.size() > 2) { //to not check old values
+                            if (coins.size() > 4) { //to not check old values
                                 for (String coin : coins) {
                                     viewport.get(wallet).put(coin, null);
                                 }
@@ -48,15 +48,19 @@ public class CreationListener extends Thread {
                                     if (creator != null && creator.equals(wallet)) {
                                         String msg = "New coin detected: https://neo.bullx.io/terminal?chainId=1399811149&address=" + coin + " \n https://pump.fun/coin/" + coin + " \n";
                                         viewport.get(wallet).put(coin, creator);
-                                        SendMessage message = SendMessage // Create a message object
-                                                .builder()
-                                                .chatId(chat_id)
-                                                .text(msg)
-                                                .build();
-                                        try {
-                                            tgclient.execute(message); // Sending our message object to user
-                                        } catch (TelegramApiException e) {
-                                            System.out.println("Exception while reporting new token " + e.getClass() + ": " + e.getMessage() + "\n " + msg);
+                                        synchronized (chat_id) {
+                                            for (Long id : chat_id) {
+                                                SendMessage message = SendMessage // Create a message object
+                                                        .builder()
+                                                        .chatId(id)
+                                                        .text(msg)
+                                                        .build();
+                                                try {
+                                                    tgclient.execute(message); // Sending our message object to user
+                                                } catch (TelegramApiException e) {
+                                                    System.out.println("Exception while reporting new token " + e.getClass() + ": " + e.getMessage() + "\n " + msg);
+                                                }
+                                            }
                                         }
                                     }
                                     viewport.get(wallet).put(coin, creator);
