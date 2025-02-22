@@ -56,14 +56,19 @@ public class CreationListener {
                         // Parse JSON
                         try {
                             JsonNode jsonNode = objectMapper.readTree(data.toString());
-                            String creator = jsonNode.get("traderPublicKey").asText();
-                            if (creator != null && viewport.contains(creator)) {
-                                String coin = jsonNode.get("mint").asText();
-                                if (coin != null) {
-                                    alert(coin);
-                                } else {
-                                    System.out.println("Couldn't alert because coin is null");
+                            JsonNode trader = jsonNode.get("traderPublicKey");
+                            if (trader != null) {
+                                String creator = trader.asText();
+                                if (viewport.contains(creator)) {
+                                    String coin = jsonNode.get("mint").asText();
+                                    if (coin != null) {
+                                        alert(coin);
+                                    } else {
+                                        System.out.println("Couldn't alert because coin is null");
+                                    }
                                 }
+                            } else {
+                                System.out.println(jsonNode.asText());
                             }
                         } catch (Exception e) {
                             System.err.println("Error parsing JSON: " + e.getMessage());
