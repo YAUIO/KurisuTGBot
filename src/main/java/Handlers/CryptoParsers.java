@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 public class CryptoParsers {
-    public static void writeHashSetToFile(Set<String> set) {
+    public static void writeHashSetToFile(Set<String> set, Set<String> favs) {
         try {
             File f = new File("data.csv");
             if (f.exists()) f.delete();
@@ -13,15 +13,21 @@ public class CryptoParsers {
             PrintWriter writer = new PrintWriter(fos, true);
 
             for (String key : set) {
-                writer.println(key);
+                writer.print(key);
+                writer.print(" ");
+                if (favs.contains(key)) {
+                    writer.print("+");
+                } else {
+                    writer.print("-");
+                }
+                writer.println();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static HashSet<String> readHashSetFromFile() throws RuntimeException {
-        HashSet<String> set = new HashSet<>();
+    public static void readHashSetFromFile(Set<String> addrs, Set<String> favs) throws RuntimeException {
         try {
             File f = new File("data.csv");
             if (!f.exists()) throw new RuntimeException("data.csv does not exist...skipping reading data");
@@ -29,12 +35,14 @@ public class CryptoParsers {
             BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 
             while (br.ready()) {
-                set.add(br.readLine());
+                String[] split = br.readLine().split(" ");
+                addrs.add(split[0]);
+                if (split[1].equals("+")) {
+                    favs.add(split[0]);
+                }
             }
         } catch (Exception e) {
-            System.out.println("Error while reading data: " + e.getMessage());
+            System.err.println("Error while reading data: " + e.getMessage());
         }
-
-        return set;
     }
 }

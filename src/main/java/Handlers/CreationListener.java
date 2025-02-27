@@ -11,14 +11,15 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.CountDownLatch;
 
 public class CreationListener {
     private static final String WS_URL = "wss://pumpportal.fun/api/data";
 
     private HashSet<String> addresses = new HashSet<>();
+    private HashSet<String> favorite = new HashSet<>();
     private TelegramClient tgclient;
     public Set<String> viewport;
+    public Set<String> favorite_viewport;
     public final HashSet<Long> chat_id;
     private WebSocket webSocket;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -28,10 +29,11 @@ public class CreationListener {
         this.tgclient = tgclient;
         this.chat_id = chat_id;
         viewport = Collections.synchronizedSet(addresses);
+        favorite_viewport = Collections.synchronizedSet(favorite);
         try {
-            viewport = CryptoParsers.readHashSetFromFile();
+            CryptoParsers.readHashSetFromFile(viewport, favorite_viewport);
         } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
         }
         System.out.println("Listener initialized");
     }
@@ -62,13 +64,13 @@ public class CreationListener {
                                 if (viewport.contains(creator)) {
                                     String coin = jsonNode.get("mint").asText();
                                     if (coin != null) {
-                                        alert(coin);
+                                        alert(coin, favorite_viewport.contains(coin));
                                     } else {
-                                        System.out.println("Couldn't alert because coin is null");
+                                        System.err.println("Couldn't alert because coin is null");
                                     }
                                 }
                             } else {
-                                System.out.println(jsonNode.asText());
+                                System.err.println(jsonNode.asText());
                             }
                         } catch (Exception e) {
                             System.err.println("Error parsing JSON: " + e.getMessage());
@@ -100,8 +102,12 @@ public class CreationListener {
         }
     }
 
-    private void alert (String coin) {
-        String msg = "New coin detected: https://neo.bullx.io/terminal?chainId=1399811149&address=" + coin + " \n https://pump.fun/coin/" + coin + " \n";
+    private void alert (String coin, boolean favorite) {
+        String msg = "";
+        if (favorite) {
+            msg = "\uD83D\uDEA8\uD83D\uDEA8\uD83D\uDEA8 ";
+        }
+        msg += "New coin detected: https://neo.bullx.io/terminal?chainId=1399811149&address=" + coin + " \n https://pump.fun/coin/" + coin + " \n";
         synchronized (chat_id) {
             for (Long id : chat_id) {
                 SendMessage message = SendMessage // Create a message object
