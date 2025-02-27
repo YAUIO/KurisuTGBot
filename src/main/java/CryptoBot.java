@@ -25,11 +25,13 @@ public class CryptoBot implements LongPollingSingleThreadUpdateConsumer {
                 csvParser.writeChatKey(clients);
             }
 
+            String response = CommandParser.parse(message_text, listener);
+
             for (Long chatid : clients) {
                 SendMessage message = SendMessage // Create a message object
                         .builder()
                         .chatId(chatid)
-                        .text(CommandParser.parse(message_text, listener))
+                        .text(response)
                         .build();
                 try {
                     telegramClient.execute(message); // Sending our message object to user
