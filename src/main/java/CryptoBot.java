@@ -31,8 +31,11 @@ public class CryptoBot implements LongPollingSingleThreadUpdateConsumer {
             String response = CommandParser.parse(message_text, listener);
 
             do {
-                int split = Math.min(response.length(), 4000);
-                split = response.indexOf('\n',split-40);
+                int min = Math.min(response.length(), 4000);
+                int split = response.indexOf('\n',min-40);
+                if (split == -1) {
+                    split = min;
+                }
                 parsedResponse.add(response.substring(0, split));
                 response = response.substring(split);
             } while (response.length() >= 4000);
@@ -40,7 +43,8 @@ public class CryptoBot implements LongPollingSingleThreadUpdateConsumer {
 
             for (Long chatid : clients) {
                 for (String msg : parsedResponse) {
-                    SendMessage message = SendMessage // Create a message object
+                    if (msg.isBlank() || msg.isEmpty()) {continue;}
+                        SendMessage message = SendMessage // Create a message object
                             .builder()
                             .chatId(chatid)
                             .text(msg)
