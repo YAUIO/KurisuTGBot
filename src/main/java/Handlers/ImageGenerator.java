@@ -2,33 +2,44 @@ package Handlers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverInfo;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
+import java.time.Duration;
 
 public class ImageGenerator {
-    private static final String API_URL = "https://frontend-api-v3.pump.fun/coins/user-created-coins/COINS_ENDPOINT?offset=0&limit=10&includeNsfw=false"; // Replace with actual API URL
+    static {
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless");
+        driver = new ChromeDriver(options);
+    }
     private static final int WIDTH = 520;
+    public static final WebDriver driver;
 
-    private static JsonNode fetchLastCoins(String username) throws IOException {
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(API_URL.replace("COINS_ENDPOINT", username))
-                .get()
-                .build();
+    private static JsonNode fetchLastCoins(String username) throws Exception {
+        driver.get("https://frontend-api-v3.pump.fun/coins/user-created-coins/" + username + "?offset=0&limit=10&includeNsfw=false");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement preTag = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("pre")));
 
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new IOException("Failed to fetch data with error code: " + response.code());
+        String jsonResponse = preTag.getText();
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readTree(response.body().string()); // Get coins array
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readTree(jsonResponse);
+        } catch (Exception e) {
+            throw new Exception("\nParse error with response: " + jsonResponse,e);
         }
     }
 
@@ -42,7 +53,7 @@ public class ImageGenerator {
 
         if (coins == null) return null;
 
-        int HEIGHT = 40 + (100 * Math.min(coins.size(), 5));
+        int HEIGHT = 60 + (100 * Math.min(coins.size(), 5));
 
         BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2d = image.createGraphics();

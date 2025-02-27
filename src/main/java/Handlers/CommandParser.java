@@ -154,6 +154,7 @@ public class CommandParser {
 
     private static void stop(CreationListener cl) {
         cl.close();
+        ImageGenerator.driver.quit();
         CryptoParsers.writeHashSetToFile(cl.viewport, cl.favorite_viewport);
         System.exit(0);
     }
