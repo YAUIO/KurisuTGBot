@@ -41,7 +41,6 @@ public class CreationListener {
         } catch (RuntimeException e) {
             System.err.println(e.getMessage());
         }
-        //alert("test", "3PpKrMdZMUg2Pj4wyyhY2AD311LFg8xkxNbmMfRTMN8i", true);
         System.out.println("Listener initialized");
     }
 
@@ -109,7 +108,7 @@ public class CreationListener {
         }
     }
 
-    private void alert (String coin, String creator, boolean favorite) {
+    protected void alert(String coin, String creator, boolean favorite) {
         //long startTime = System.currentTimeMillis();
         String msg = "";
         HashSet<Message> sentMsgs = new HashSet<>();
