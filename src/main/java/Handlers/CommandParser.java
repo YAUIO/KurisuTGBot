@@ -79,6 +79,10 @@ public class CommandParser {
                 return "Stopping...";
             }
 
+            case "/test" -> {
+                cl.alert("test", "3PpKrMdZMUg2Pj4wyyhY2AD311LFg8xkxNbmMfRTMN8i", true);
+                return "Testing...";
+            }
             case "/start" -> {
                 return "Welcome to the new version of KurisuBOT!";
             }
@@ -154,7 +158,6 @@ public class CommandParser {
 
     private static void stop(CreationListener cl) {
         cl.close();
-        ImageGenerator.driver.quit();
         CryptoParsers.writeHashSetToFile(cl.viewport, cl.favorite_viewport);
         System.exit(0);
     }
