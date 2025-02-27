@@ -3,11 +3,8 @@ package Handlers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageCaption;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.media.InputMedia;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -44,7 +41,7 @@ public class CreationListener {
         } catch (RuntimeException e) {
             System.err.println(e.getMessage());
         }
-        //alert("test", "4EXk21LNQakX4djoeEjpAXpqbKnF56chy6fUCaeaiXXu", true);
+        //alert("test", "3PpKrMdZMUg2Pj4wyyhY2AD311LFg8xkxNbmMfRTMN8i", true);
         System.out.println("Listener initialized");
     }
 
