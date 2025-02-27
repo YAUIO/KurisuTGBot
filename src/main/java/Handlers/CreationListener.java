@@ -161,6 +161,9 @@ public class CreationListener {
 
                 for (Message m : sentMsgs) {
                     emm.setMessageId(m.getMessageId());
+                    emm.setChatId(m.getChatId());
+                    emc.setMessageId(m.getMessageId());
+                    emc.setChatId(m.getChatId());
                     try {
                         tgclient.execute(emm);
                         tgclient.execute(emc);
