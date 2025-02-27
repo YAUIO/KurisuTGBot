@@ -35,10 +35,15 @@ public class CryptoParsers {
             BufferedReader br = new BufferedReader(new InputStreamReader(fis));
 
             while (br.ready()) {
-                String[] split = br.readLine().split(" ");
-                addrs.add(split[0]);
-                if (split[1].equals("+")) {
-                    favs.add(split[0]);
+                String line = br.readLine();
+                String[] split = line.split(" ");
+                if (split.length == 2) {
+                    addrs.add(split[0]);
+                    if (split[1].equals("+")) {
+                        favs.add(split[0]);
+                    }
+                } else {
+                    addrs.add(line);
                 }
             }
         } catch (Exception e) {
