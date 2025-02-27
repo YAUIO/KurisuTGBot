@@ -25,7 +25,7 @@ public class ImageGenerator {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new IOException("Failed to fetch data");
+            if (!response.isSuccessful()) throw new IOException("Failed to fetch data with error code: " + response.code());
 
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readTree(response.body().string()); // Get coins array
