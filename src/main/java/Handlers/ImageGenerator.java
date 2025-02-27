@@ -6,7 +6,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeDriverInfo;
+import org.openqa.selenium.Proxy;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -21,6 +21,14 @@ import java.time.Duration;
 public class ImageGenerator {
     static {
         ChromeOptions options = new ChromeOptions();
+        String server = csvParser.readProxyServer();
+        if (!server.isEmpty() && !server.isBlank()) {
+            System.out.println("Setting proxy server to: " + server);
+            Proxy proxy = new Proxy();
+            proxy.setSocksProxy(csvParser.readProxyServer());
+            proxy.setSocksVersion(5);
+            options.setProxy(proxy);
+        }
         options.addArguments("--headless");
         driver = new ChromeDriver(options);
     }
@@ -31,9 +39,7 @@ public class ImageGenerator {
         driver.get("https://frontend-api-v3.pump.fun/coins/user-created-coins/" + username + "?offset=0&limit=10&includeNsfw=false");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         WebElement preTag = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("pre")));
-
         String jsonResponse = preTag.getText();
-
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {
