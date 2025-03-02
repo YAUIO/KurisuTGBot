@@ -2,52 +2,35 @@ package Handlers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.Proxy;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
-import java.time.Duration;
 
 public class ImageGenerator {
-    static {
-        ChromeOptions options = new ChromeOptions();
-        String server = csvParser.readProxyServer();
-        if (!server.isEmpty() && !server.isBlank()) {
-            System.out.println("Setting proxy server to: " + server);
-            Proxy proxy = new Proxy();
-            proxy.setSocksProxy(csvParser.readProxyServer());
-            proxy.setSocksVersion(5);
-            options.setProxy(proxy);
-        }
-        options.addArguments("--headless");
-        driver = new ChromeDriver(options);
-    }
+    private static final String API_URL = "https://frontend-api-v3.pump.fun/coins/user-created-coins/COINS_ENDPOINT?offset=0&limit=10&includeNsfw=false"; // Replace with actual API URL
     private static final int WIDTH = 520;
-    public static final WebDriver driver;
 
-    private static JsonNode fetchLastCoins(String username) throws Exception {
-        driver.get("https://frontend-api-v3.pump.fun/coins/user-created-coins/" + username + "?offset=0&limit=10&includeNsfw=false");
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        WebElement preTag = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("pre")));
-        String jsonResponse = preTag.getText();
+    private static JsonNode fetchLastCoins(String username) throws IOException {
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(API_URL.replace("COINS_ENDPOINT", username))
+                .get()
+                .build();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.readTree(jsonResponse);
-        } catch (Exception e) {
-            throw new Exception("\nParse error with response: " + jsonResponse,e);
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Failed to fetch data with error code: " + response.code());
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readTree(response.body().string()); // Get coins array
         }
     }
+
 
     public static File generateImage(String username) throws IOException {
         JsonNode coins = null;
