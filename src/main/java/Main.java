@@ -8,7 +8,7 @@ public class Main {
             TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication();
             String botToken = csvParser.readTGKey();
             botsApplication.registerBot(botToken, new CryptoBot());
-            System.out.println("MyAmazingBot successfully started!");
+            System.out.println("kurisubot successfully started!");
         } catch (TelegramApiException e) {
             System.out.println(e.getClass() + ": " + e.getMessage());
         }
