@@ -15,10 +15,15 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 
 public class CreationListener {
+    private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm:ss");
+    public static String getTime () {return format.format(LocalDateTime.now());}
+
     private static final String WS_URL = "wss://pumpportal.fun/api/data";
 
     private final TelegramClient tgclient;
@@ -74,7 +79,8 @@ public class CreationListener {
 
                     @Override
                     public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-                        System.out.println("WebSocket closed: " + reason);
+                        System.out.println("WebSocket closed: " + statusCode + " " + reason);
+                        webSocket = connectWebSocket();
                         return WebSocket.Listener.super.onClose(webSocket, statusCode, reason);
                     }
                 }).join();
@@ -84,6 +90,7 @@ public class CreationListener {
         // Parse JSON
         //System.out.println("Parsing received coin");
         try {
+            System.out.println(getTime() + " :: parsing received coin");
             JsonNode jsonNode = objectMapper.readTree(data.toString());
             //System.out.println(data.toString());
             JsonNode trader = jsonNode.get("traderPublicKey");
@@ -116,7 +123,7 @@ public class CreationListener {
     }
 
     protected void alert(String coin, String creator, boolean favorite) {
-        System.out.println("Alerting user...");
+        System.out.println(getTime() + " :: Alerting user...");
         long startTime = System.currentTimeMillis();
         String msg = "";
         HashSet<Message> sentMsgs = new HashSet<>();
