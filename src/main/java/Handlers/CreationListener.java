@@ -15,26 +15,32 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 
 public class CreationListener {
+    private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm:ss");
+    public static String getTime () {return format.format(LocalDateTime.now());}
+
     private static final String WS_URL = "wss://pumpportal.fun/api/data";
 
-    private HashSet<String> addresses = new HashSet<>();
-    private HashSet<String> favorite = new HashSet<>();
-    private TelegramClient tgclient;
-    public Set<String> viewport;
-    public Set<String> favorite_viewport;
+    private final TelegramClient tgclient;
+    public final Set<String> viewport;
+    public final Set<String> favorite_viewport;
     public final HashSet<Long> chat_id;
-    private WebSocket webSocket;
+    private final WebSocket webSocket;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final int pollingRate = 10;
 
     public CreationListener(TelegramClient tgclient, HashSet<Long> chat_id) {
         webSocket = connectWebSocket();
         this.tgclient = tgclient;
         this.chat_id = chat_id;
+        HashSet<String> addresses = new HashSet<>();
         viewport = Collections.synchronizedSet(addresses);
+        HashSet<String> favorite = new HashSet<>();
         favorite_viewport = Collections.synchronizedSet(favorite);
         try {
             CryptoParsers.readHashSetFromFile(viewport, favorite_viewport);
@@ -56,32 +62,13 @@ public class CreationListener {
                         System.out.println("Connected to WebSocket: " + WS_URL);
                         // Subscribe to new token events
                         sendJson(webSocket, Map.of("method", "subscribeNewToken"));
-                        webSocket.request(1);
+                        webSocket.request(pollingRate);
                     }
 
                     @Override
                     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-                        // Parse JSON
-                        try {
-                            JsonNode jsonNode = objectMapper.readTree(data.toString());
-                            JsonNode trader = jsonNode.get("traderPublicKey");
-                            if (trader != null) {
-                                String creator = trader.asText();
-                                if (viewport.contains(creator)) {
-                                    String coin = jsonNode.get("mint").asText();
-                                    if (coin != null) {
-                                        alert(coin, creator, favorite_viewport.contains(coin));
-                                    } else {
-                                        System.err.println("Couldn't alert because coin is null");
-                                    }
-                                }
-                            } else {
-                                System.err.println(jsonNode.asText());
-                            }
-                        } catch (Exception e) {
-                            System.err.println("Error parsing JSON: " + e.getMessage());
-                        }
-                        webSocket.request(1);
+                        new Thread(() -> parseIncoming(data)).start();
+                        webSocket.request(pollingRate);
                         return WebSocket.Listener.super.onText(webSocket, data, last);
                     }
 
@@ -92,10 +79,37 @@ public class CreationListener {
 
                     @Override
                     public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-                        System.out.println("WebSocket closed: " + reason);
+                        System.out.println("WebSocket closed: " + statusCode + " " + reason);
+                        webSocket = connectWebSocket();
                         return WebSocket.Listener.super.onClose(webSocket, statusCode, reason);
                     }
                 }).join();
+    }
+
+    private void parseIncoming (CharSequence data) {
+        // Parse JSON
+        //System.out.println("Parsing received coin");
+        try {
+            System.out.println(getTime() + " :: parsing received coin");
+            JsonNode jsonNode = objectMapper.readTree(data.toString());
+            //System.out.println(data.toString());
+            JsonNode trader = jsonNode.get("traderPublicKey");
+            if (trader != null) {
+                String creator = trader.asText();
+                if (viewport.contains(creator)) {
+                    String coin = jsonNode.get("mint").asText();
+                    if (coin != null) {
+                        alert(coin, creator, favorite_viewport.contains(coin));
+                    } else {
+                        System.err.println("Couldn't alert because coin is null");
+                    }
+                }
+            } else {
+                System.err.println(jsonNode.asText());
+            }
+        } catch (Exception e) {
+            System.err.println("Error parsing JSON: " + e.getMessage());
+        }
     }
 
     private void sendJson(WebSocket webSocket, Map<String, Object> payload) {
@@ -109,7 +123,8 @@ public class CreationListener {
     }
 
     protected void alert(String coin, String creator, boolean favorite) {
-        //long startTime = System.currentTimeMillis();
+        System.out.println(getTime() + " :: Alerting user...");
+        long startTime = System.currentTimeMillis();
         String msg = "";
         HashSet<Message> sentMsgs = new HashSet<>();
         if (favorite) {
@@ -125,13 +140,15 @@ public class CreationListener {
             for (Long id : chat_id) {
                 message.setChatId(id);
                 try {
-                    sentMsgs.add(tgclient.execute(message)); // Sending our message object to user
+                    synchronized (tgclient) {
+                        sentMsgs.add(tgclient.execute(message)); // Sending our message object to user
+                    }
                 } catch (TelegramApiException e) {
                     System.err.println("Exception while reporting new token " + e.getClass() + ": " + e.getMessage() + "\n " + msg);
                 }
             }
 
-            //System.out.println("Reported text in " + (System.currentTimeMillis()-startTime) + "ms");
+            System.out.println("Reported text in " + (System.currentTimeMillis()-startTime) + "ms");
 
             File img = null;
             try {
@@ -161,15 +178,17 @@ public class CreationListener {
                     emc.setMessageId(m.getMessageId());
                     emc.setChatId(m.getChatId());
                     try {
-                        tgclient.execute(emm);
-                        tgclient.execute(emc);
+                        synchronized (tgclient) {
+                            tgclient.execute(emm);
+                            tgclient.execute(emc);
+                        }
                     } catch (TelegramApiException e) {
                         System.err.println("Exception while reporting new token " + e.getClass() + ": " + e.getMessage() + "\n " + msg);
                     }
                 }
             }
 
-            //System.out.println("Reported full msg in " + (System.currentTimeMillis()-startTime) + "ms");
+            System.out.println("Reported full msg in " + (System.currentTimeMillis()-startTime) + "ms");
         }
     }
 }

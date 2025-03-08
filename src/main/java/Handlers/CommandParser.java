@@ -136,7 +136,7 @@ public class CommandParser {
         ret.append("List of wallets: \n");
         if (cl.viewport != null) {
             for (String wallet : cl.viewport) {
-                ret.append("Wallet ").append(i).append(": ").append(wallet).append("\n");
+                ret.append("Wallet ").append(i).append(": ").append("https://pump.fun/profile/").append(wallet).append("\n");
                 i++;
             }
         }
@@ -149,7 +149,7 @@ public class CommandParser {
         ret.append("List of favorite wallets: \n");
         if (cl.favorite_viewport != null) {
             for (String wallet : cl.favorite_viewport) {
-                ret.append("Wallet ").append(i).append(": ").append(wallet).append("\n");
+                ret.append("Wallet ").append(i).append(": ").append("https://pump.fun/profile/").append(wallet).append("\n");
                 i++;
             }
         }

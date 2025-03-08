@@ -17,11 +17,12 @@ public class csvParser {
         }
     }
 
-    public static String readSQLKey() {
+    public static String readProxyServer() {
         try {
-            FileInputStream fis = new FileInputStream("token.csv");
+            File f = new File("proxy.csv");
+            if (!f.exists()) f.createNewFile();
+            FileInputStream fis = new FileInputStream("proxy.csv");
             BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-            br.readLine();
             String key = br.readLine();
             if (key == null || key.isBlank() || key.isEmpty()) throw new Exception();
             return key;
